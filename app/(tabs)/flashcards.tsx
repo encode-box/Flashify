@@ -55,28 +55,35 @@ function FlashcardModal() {
   }, [flashcard.id]);
 
   const flipCard = () => {
-    setShowingAnswer(!showingAnswer);
-    flipAnimation.value = withTiming(showingAnswer ? 0 : 180, {
-      duration: 300,
-      easing: Easing.inOut(Easing.ease),
-    });
+    setShowingAnswer((prevShowingAnswer) => !prevShowingAnswer);
   };
 
   const nextCard = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(prevIndex => prevIndex + 1);
-      setShowingAnswer(false);
-      flipAnimation.value = 0;
-    }
+    setCurrentIndex((prevIndex) => {
+      if (prevIndex < questions.length - 1) {
+        setShowingAnswer(false); // Reset showingAnswer first
+        return prevIndex + 1;
+      }
+      return prevIndex;
+    });
   };
 
   const prevCard = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prevIndex => prevIndex - 1);
-      setShowingAnswer(false);
-      flipAnimation.value = 0;
-    }
+    setCurrentIndex((prevIndex) => {
+      if (prevIndex > 0) {
+        setShowingAnswer(false);
+        return prevIndex - 1;
+      }
+      return prevIndex;
+    });
   };
+
+  useEffect(() => {
+    flipAnimation.value = withTiming(showingAnswer ? 180 : 0, {
+      duration: 300,
+      easing: Easing.inOut(Easing.ease),
+    });
+  }, [showingAnswer]);
 
   const frontAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -94,6 +101,7 @@ function FlashcardModal() {
       left: 0,
       right: 0,
       bottom: 0,
+      opacity: showingAnswer ? 1 : 0, // Hide back when not showing answer
     };
   });
 
