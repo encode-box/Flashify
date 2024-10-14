@@ -211,9 +211,9 @@ function CreateFlashcardScreen() {
 
       setIsLoading(true);  // Start loading indicator during OpenAI request
 
-      // Create a promise that rejects after 15 seconds
+      // Create a promise that rejects after 30 seconds
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('OpenAI request timed out')), 15000);
+        setTimeout(() => reject(new Error('OpenAI request timed out')), 30000);
       });
 
       // Race the OpenAI request against the timeout

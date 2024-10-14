@@ -81,8 +81,10 @@ export const setupDatabase = async (db: SQLite.SQLiteDatabase) => {
       { flashcard_id: 1, question: 'What is the capital of France?', answer: 'Paris' },
       { flashcard_id: 1, question: 'What is the capital of Germany?', answer: 'Berlin' },
       { flashcard_id: 1, question: 'What is the capital of Italy?', answer: 'Rome' },
-      { flashcard_id: 2, question: 'What is 1 + 1?', answer: '2' },
-      { flashcard_id: 2, question: 'What is 2 + 2?', answer: '4' },
+      { flashcard_id: 2, question: '1 + 1 = ?', answer: '2' },
+      { flashcard_id: 2, question: '1 + 2 = ?', answer: '3' },
+      { flashcard_id: 2, question: '2 + 3 = ?', answer: '5' },
+      { flashcard_id: 2, question: '3 + 4 = ?', answer: '7' },
     ];
 
     questions.forEach(q => {

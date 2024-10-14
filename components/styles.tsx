@@ -170,13 +170,13 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-
     color: '#333',
   },
   cardContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Dimensions.get('window').height * 0.25,
+    flex: 1,
+    backgroundColor: '#E0F7FA',
   },
   card: {
     width: '100%',
@@ -216,6 +216,34 @@ const styles = StyleSheet.create({
   topicButtonText: {
     fontSize: 14,
     color: '#333',
+  },
+  flipContainer: {
+    width: '90%',
+    aspectRatio: 3/4,
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flipButton: {
+    padding: 10,
+    marginTop: 20,
+    backgroundColor: 'white',
+    borderRadius: 12,
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '90%',
+  },
+  navButton: {
+    padding: 10,
+    backgroundColor: '#B3E5FC',
+    borderRadius: 8,
+    width: 100,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

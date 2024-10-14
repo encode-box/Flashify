@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { View, FlatList, Text, SafeAreaView, TouchableOpacity, Animated } from 'react-native';
+import { View, FlatList, Text, SafeAreaView, TouchableOpacity } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { ThemedView } from '@/components/ThemedView';
 
@@ -11,6 +11,8 @@ import styles from '@/components/styles';
 import { queryFlashcardSummaries, queryFlashcardQuestions } from '@/components/database';
 import SQLite from 'react-native-sqlite-storage';
 import Swiper from 'react-native-deck-swiper';
+import FlipCard from "react-native-flip";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 
 const db = SQLite.openDatabase(
   {
@@ -41,105 +43,92 @@ function FlashcardModal() {
   const route = useRoute<RouteProp<RootStackParamList, 'Flashcard'>>();
   const { flashcard } = route.params;
   const [questions, setQuestions] = useState<{ question: string, answer: string }[]>([]);
-  const [flippedCards, setFlippedCards] = useState<{ [key: number]: boolean }>({});
-  const [isFinished, setIsFinished] = useState(false);
-  const flipAnimations = useRef<{ [key: number]: Animated.Value }>({});
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showingAnswer, setShowingAnswer] = useState(false);
+
+  const flipAnimation = useSharedValue(0);
 
   useEffect(() => {
     queryFlashcardQuestions(flashcard.id, (fetchedQuestions) => {
       setQuestions(fetchedQuestions);
-      const initialFlipAnimations: { [key: number]: Animated.Value } = {};
-      fetchedQuestions.forEach((_, index) => {
-        initialFlipAnimations[index] = new Animated.Value(0);
-      });
-      flipAnimations.current = initialFlipAnimations;
     });
   }, [flashcard.id]);
 
-  const flipCard = (index: number) => {
-    const isFlipped = flippedCards[index] || false;
-    if (flipAnimations.current[index]) {
-      Animated.spring(flipAnimations.current[index], {
-        toValue: isFlipped ? 0 : 180,
-        friction: 8,
-        tension: 10,
-        useNativeDriver: true,
-      }).start();
+  const flipCard = () => {
+    setShowingAnswer(!showingAnswer);
+    flipAnimation.value = withTiming(showingAnswer ? 0 : 180, {
+      duration: 300,
+      easing: Easing.inOut(Easing.ease),
+    });
+  };
 
-      setFlippedCards(prev => ({ ...prev, [index]: !isFlipped }));
+  const nextCard = () => {
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(prevIndex => prevIndex + 1);
+      setShowingAnswer(false);
+      flipAnimation.value = 0;
     }
   };
 
-  const renderCard = (card: { question: string, answer: string }, index: number) => {
-    if (!card || typeof card.question === 'undefined' || typeof card.answer === 'undefined') {
-      return (
-        <View style={styles.cardContainer}>
-          <Text style={styles.cardText}>No data available</Text>
-        </View>
-      );
+  const prevCard = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prevIndex => prevIndex - 1);
+      setShowingAnswer(false);
+      flipAnimation.value = 0;
     }
-
-    const frontInterpolate = flipAnimations.current[index]?.interpolate({
-      inputRange: [0, 180],
-      outputRange: ['0deg', '180deg'],
-    }) || '0deg';
-
-    const backInterpolate = flipAnimations.current[index]?.interpolate({
-      inputRange: [0, 180],
-      outputRange: ['180deg', '360deg'],
-    }) || '180deg';
-
-    const frontAnimatedStyle = {
-      transform: [{ rotateY: frontInterpolate }],
-    };
-
-    const backAnimatedStyle = {
-      transform: [{ rotateY: backInterpolate }],
-    };
-
-    return (
-      <TouchableOpacity onPress={() => flipCard(index)} activeOpacity={1} style={styles.cardContainer}>
-        <Animated.View style={[styles.card, frontAnimatedStyle]}>
-          <Text style={styles.cardText}>{card.question}</Text>
-        </Animated.View>
-        <Animated.View style={[styles.card, styles.cardBack, backAnimatedStyle]}>
-          <Text style={styles.cardText}>{card.answer}</Text>
-        </Animated.View>
-      </TouchableOpacity>
-    );
   };
 
-  if (isFinished) {
+  const frontAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotateY: `${flipAnimation.value}deg` }],
+      backfaceVisibility: 'hidden',
+    };
+  });
+
+  const backAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotateY: `${flipAnimation.value - 180}deg` }],
+      backfaceVisibility: 'hidden',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    };
+  });
+
+  if (questions.length === 0) {
     return (
       <View style={styles.cardContainer}>
-        <Text style={[styles.cardText, { color: 'gray', justifyContent: 'center', alignItems: 'center' }]}>The end</Text>
+        <Text style={styles.cardText}>No questions available</Text>
       </View>
     );
   }
 
+  const currentCard = questions[currentIndex];
+
   return (
-    <View style={styles.container}>
-      <Swiper
-        cards={questions}
-        renderCard={renderCard}
-        onSwiped={(cardIndex) => {
-          console.log(cardIndex);
-          setFlippedCards(prev => ({ ...prev, [cardIndex]: false }));
-          if (flipAnimations.current[cardIndex]) {
-            flipAnimations.current[cardIndex].setValue(180);
-          }
-        }}
-        onSwipedAll={() => {
-          console.log('onSwipedAll');
-          setIsFinished(true);
-        }}
-        cardIndex={0}
-        backgroundColor={'#4FD0E9'}
-        stackSize={3}
-        verticalSwipe={true}
-        horizontalSwipe={true}
-      />
-    </View>
+    <SafeAreaView style={styles.cardContainer}>
+      <TouchableOpacity onPress={flipCard} activeOpacity={0.8}>
+        <View style={styles.flipContainer}>
+          <Animated.View style={[styles.card, { backgroundColor: '#FFA500' }, frontAnimatedStyle]}>
+            <Text style={styles.cardText}>{currentCard.question}</Text>
+          </Animated.View>
+          <Animated.View style={[styles.card, { backgroundColor: '#40E0D0' }, backAnimatedStyle]}>
+            <Text style={styles.cardText}>{currentCard.answer}</Text>
+          </Animated.View>
+        </View>
+      </TouchableOpacity>
+      <View style={styles.navigationButtons}>
+        <TouchableOpacity onPress={prevCard} style={styles.navButton} disabled={currentIndex === 0}>
+          <Text>Previous</Text>
+        </TouchableOpacity>
+        <Text>{`${currentIndex + 1} / ${questions.length}`}</Text>
+        <TouchableOpacity onPress={nextCard} style={styles.navButton} disabled={currentIndex === questions.length - 1}>
+          <Text>Next</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -260,4 +249,3 @@ export default function StackScreen() {
     </Stack.Navigator>
   );
 }
-
