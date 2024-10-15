@@ -99,7 +99,7 @@ const categorizedTopics = {
   "Self-Improvement": [
     {
       "title": "Interview Questions",
-      "summary": "Interview Questions"
+      "summary": "Common Behavioral Interview Questions"
     },
     {
       "title": "Motivation or Business Skills",

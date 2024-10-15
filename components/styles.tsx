@@ -1,5 +1,7 @@
 import { Dimensions, StyleSheet } from 'react-native';
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -218,8 +220,8 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   flipContainer: {
-    width: '90%',
-    aspectRatio: 3/4,
+    width: width > 768 ? '70%' : '90%', // Adjust width based on device width
+    aspectRatio: 3 / 4,
     marginBottom: 20,
     alignItems: 'center',
     justifyContent: 'center',

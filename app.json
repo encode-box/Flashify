@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.flashcardforall"
+      "bundleIdentifier": "EncodeBox.Flashify"
     },
     "android": {
       "adaptiveIcon": {
